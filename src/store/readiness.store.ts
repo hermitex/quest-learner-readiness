@@ -2,11 +2,18 @@ import { create } from "zustand";
 import type { Skill, SkillKey, DrawerMode } from "@/src/types/readiness";
 import { MOCK_READINESS } from "@/src/services/mocks/readiness.mock";
 import { useToastStore } from "@/src/store/toast.store";
+import { getPersistedState, setPersistedState } from "@/src/utils/indexed-db";
 
 export type { SkillKey };
 
 type ReadinessState = {
   skills: Skill[];
+  pendingQueue: Array<{
+    type: "create" | "edit" | "delete";
+    payload: unknown;
+    queuedAt: number;
+  }>;
+  isSyncing: boolean;
 
   drawerMode: DrawerMode | null;
   activeSkillId: string | null;
@@ -23,14 +30,25 @@ type ReadinessState = {
   addSkill: (skill: Skill) => Promise<void>;
   updateSkill: (id: string, label: string, score: number) => Promise<void>;
   removeSkill: (id: string) => Promise<void>;
+
+  /* sync */
+  syncPending: () => Promise<void>;
+  hydrate: () => Promise<void>;
 };
 
 function simulateNetworkDelay(ms = 700) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function isOnline() {
+  if (typeof navigator === "undefined") return true;
+  return navigator.onLine;
+}
+
 export const useReadinessStore = create<ReadinessState>((set) => ({
   skills: MOCK_READINESS.skills,
+  pendingQueue: [],
+  isSyncing: false,
 
   drawerMode: null,
   activeSkillId: null,
@@ -43,52 +61,123 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
   closeDrawer: () => set({ drawerMode: null, activeSkillId: null }),
 
   addSkill: async (skill) => {
+    const online = isOnline();
     set({ pendingAction: "create" });
-    await simulateNetworkDelay();
-    set((state) => ({
-      skills: [...state.skills, skill],
-      drawerMode: null,
-      activeSkillId: null,
-      pendingAction: null,
-    }));
+    if (online) await simulateNetworkDelay();
+    set((state) => {
+      const next = {
+        skills: [...state.skills, skill],
+        drawerMode: null,
+        activeSkillId: null,
+        pendingAction: null,
+        pendingQueue: online
+          ? state.pendingQueue
+          : [
+              ...state.pendingQueue,
+              { type: "create", payload: skill, queuedAt: Date.now() },
+            ],
+      };
+      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      return next;
+    });
     useToastStore.getState().pushToast({
-      title: "Skill area added",
-      message: `${skill.label} is now part of your readiness profile.`,
-      variant: "success",
+      title: online ? "Skill area added" : "Saved offline",
+      message: online
+        ? `${skill.label} is now part of your readiness profile.`
+        : "We will sync when you reconnect.",
+      variant: online ? "success" : "info",
     });
   },
 
   updateSkill: async (id, label, score) => {
+    const online = isOnline();
     set({ pendingAction: "edit" });
-    await simulateNetworkDelay();
-    set((state) => ({
-      skills: state.skills.map((s) =>
+    if (online) await simulateNetworkDelay();
+    set((state) => {
+      const nextSkills = state.skills.map((s) =>
         s.id === id ? { ...s, label, score } : s
-      ),
-      drawerMode: null,
-      activeSkillId: null,
-      pendingAction: null,
-    }));
+      );
+      const next = {
+        skills: nextSkills,
+        drawerMode: null,
+        activeSkillId: null,
+        pendingAction: null,
+        pendingQueue: online
+          ? state.pendingQueue
+          : [
+              ...state.pendingQueue,
+              {
+                type: "edit",
+                payload: { id, label, score },
+                queuedAt: Date.now(),
+              },
+            ],
+      };
+      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      return next;
+    });
     useToastStore.getState().pushToast({
-      title: "Changes saved",
-      message: `${label} has been updated.`,
-      variant: "success",
+      title: online ? "Changes saved" : "Saved offline",
+      message: online ? `${label} has been updated.` : "We will sync when you reconnect.",
+      variant: online ? "success" : "info",
     });
   },
 
   removeSkill: async (id) => {
+    const online = isOnline();
     set({ pendingAction: "delete" });
-    await simulateNetworkDelay();
-    set((state) => ({
-      skills: state.skills.filter((s) => s.id !== id),
-      drawerMode: null,
-      activeSkillId: null,
-      pendingAction: null,
-    }));
+    if (online) await simulateNetworkDelay();
+    set((state) => {
+      const nextSkills = state.skills.filter((s) => s.id !== id);
+      const next = {
+        skills: nextSkills,
+        drawerMode: null,
+        activeSkillId: null,
+        pendingAction: null,
+        pendingQueue: online
+          ? state.pendingQueue
+          : [
+              ...state.pendingQueue,
+              { type: "delete", payload: { id }, queuedAt: Date.now() },
+            ],
+      };
+      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      return next;
+    });
     useToastStore.getState().pushToast({
-      title: "Skill area removed",
-      message: "Your readiness summary has been updated.",
-      variant: "info",
+      title: online ? "Skill area removed" : "Saved offline",
+      message: online
+        ? "Your readiness summary has been updated."
+        : "We will sync when you reconnect.",
+      variant: online ? "info" : "info",
+    });
+  },
+
+  syncPending: async () => {
+    if (!isOnline()) return;
+    const { pendingQueue } = useReadinessStore.getState();
+    if (pendingQueue.length === 0) return;
+    set({ isSyncing: true });
+    await simulateNetworkDelay(800);
+    set((state) => {
+      const next = { ...state, pendingQueue: [] };
+      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      return next;
+    });
+    set({ isSyncing: false });
+    useToastStore.getState().pushToast({
+      title: "Synced",
+      message: "Offline changes are now saved.",
+      variant: "success",
+    });
+  },
+
+  hydrate: async () => {
+    const persisted = await getPersistedState();
+    if (!persisted) return;
+    set({
+      skills: (persisted.skills as Skill[]) ?? MOCK_READINESS.skills,
+      pendingQueue: (persisted.pendingQueue as ReadinessState["pendingQueue"]) ?? [],
     });
   },
 }));

@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, Bell } from "lucide-react";
 import { Sidebar } from "@/src/components/layout/side-drawer/side-drawer";
 import { ToastViewport } from "@/src/components/ui/toast";
+import { useReadinessStore } from "@/src/store/readiness.store";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Readiness",
@@ -17,8 +18,43 @@ type RootShellProps = {
 
 export function RootShell({ children }: RootShellProps) {
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+  const [isOnline, setIsOnline] = React.useState(true);
+  const syncPending = useReadinessStore((s) => s.syncPending);
+  const hydrate = useReadinessStore((s) => s.hydrate);
+  const isSyncing = useReadinessStore((s) => s.isSyncing);
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] || "Quest";
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const register = () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+    };
+    window.addEventListener("load", register);
+    return () => window.removeEventListener("load", register);
+  }, []);
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isOnline) {
+      syncPending();
+    }
+  }, [isOnline, syncPending]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -70,7 +106,20 @@ export function RootShell({ children }: RootShellProps) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6 space-y-4">
+          {!isOnline && (
+            <div className="rounded-lg border border-accent/40 bg-accent/15 px-3 py-2 text-sm text-text-primary">
+              You are offline. Changes will sync when you reconnect.
+            </div>
+          )}
+          {isOnline && isSyncing && (
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+              <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+              Syncing changes...
+            </div>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );
