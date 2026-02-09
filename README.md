@@ -14,6 +14,12 @@ The emphasis is clarity of thinking, system design, and UI/UX intent over backen
 
 ---
 
+## UI Preview
+
+![Quest Learner Readiness dashboard UI](public/assets/dashboard-ui.png)
+
+---
+
 ## Product Context
 
 Learners using Quest need a simple, motivating way to understand:
