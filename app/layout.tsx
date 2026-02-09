@@ -11,6 +11,21 @@ import { RootShell } from "@/src/components/layout/root-shell";
 export const metadata: Metadata = {
   title: "Quest | Learner Readiness",
   description: "Learner readiness dashboard for Nova Pioneer students",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/AppIcons/Assets.xcassets/AppIcon.appiconset/_/180.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Quest",
+  },
+};
+
+export const viewport = {
+  themeColor: "#1e3a77",
 };
 
 export default function RootLayout({
