@@ -12,11 +12,11 @@ The API follows a **standard response envelope** to ensure consistency, predicta
 
 ## 2. API Principles
 
-- Read-only endpoints
+- Read-only readiness snapshot (current)
 - Stable, versioned contracts
 - Standardized response structure
 - Frontend-safe defaults
-- Human-meaning derived client-side
+- Human meaning derived client-side
 - JSON over HTTP
 - Mobile-first payload size
 
@@ -27,15 +27,13 @@ The API follows a **standard response envelope** to ensure consistency, predicta
 ```text
 Base URL: /api/v1
 Content-Type: application/json
-````
+```
 
 Authentication is out of scope for this task.
 
 ---
 
 ## 4. Standard API Response Format
-
-All API responses follow the same envelope structure.
 
 ### 4.1 Success Response Shape
 
@@ -70,10 +68,7 @@ All API responses follow the same envelope structure.
 GET /api/v1/readiness/{learnerId}
 ```
 
-#### Description
-
 Returns the latest readiness snapshot for a learner.
-The snapshot represents a point-in-time assessment used to power the learner dashboard.
 
 ---
 
@@ -91,34 +86,12 @@ The snapshot represents a point-in-time assessment used to power the learner das
 {
   "success": true,
   "data": {
-    "learnerId": "learner-001",
-    "generatedAt": "2026-01-15T10:00:00Z",
     "overallScore": 65,
-    "categories": [
-      {
-        "id": "academics",
-        "label": "Academics",
-        "score": 80,
-        "description": "Academic readiness for further study"
-      },
-      {
-        "id": "career_skills",
-        "label": "Career Skills",
-        "score": 60,
-        "description": "Preparation for the workplace"
-      },
-      {
-        "id": "life_skills",
-        "label": "Life Skills",
-        "score": 70,
-        "description": "Independence and self-management"
-      },
-      {
-        "id": "entrepreneurship",
-        "label": "Entrepreneurship",
-        "score": 50,
-        "description": "Innovation and initiative"
-      }
+    "skills": [
+      { "id": "academics", "label": "Academics", "score": 80 },
+      { "id": "career", "label": "Career Skills", "score": 60 },
+      { "id": "life", "label": "Life Skills", "score": 70 },
+      { "id": "entrepreneurship", "label": "Entrepreneurship", "score": 50 }
     ]
   },
   "message": null
@@ -127,46 +100,36 @@ The snapshot represents a point-in-time assessment used to power the learner das
 
 ---
 
-## 6. Data Contract Definitions
-
-### 6.1 ReadinessSnapshot
-
-| Field        | Type            | Description                   |
-| ------------ | --------------- | ----------------------------- |
-| learnerId    | string          | Learner identifier            |
-| generatedAt  | ISO 8601 string | Snapshot generation time      |
-| overallScore | number (0–100)  | Aggregate readiness score     |
-| categories   | array           | Per-skill readiness breakdown |
-
----
-
-### 6.2 ReadinessCategory
-
-| Field       | Type           | Description                |
-| ----------- | -------------- | -------------------------- |
-| id          | string         | Stable category identifier |
-| label       | string         | Human-readable name        |
-| score       | number (0–100) | Category score             |
-| description | string         | Context for the category   |
-
----
-
-## 7. Interpretation Responsibility
+## 6. Interpretation Responsibility
 
 The API intentionally returns **raw readiness data only**.
 
 The following responsibilities belong to the frontend:
 
-* Translating scores into meaning (e.g. “On track”)
-* Identifying strongest and weakest areas
-* Generating learner-facing recommendations
-* Determining visual emphasis and hierarchy
+- Translating scores into meaning (e.g. “On track”)
+- Identifying strongest and weakest areas
+- Generating learner-facing recommendations
+- Determining visual emphasis and hierarchy
 
 This separation allows:
 
-* Backend scoring logic to evolve independently
-* Multiple frontend experiences (learner, parent, coach)
-* Consistent interpretation rules per client
+- Backend scoring logic to evolve independently
+- Multiple frontend experiences (learner, parent, coach)
+- Consistent interpretation rules per client
+
+---
+
+## 7. Offline Considerations
+
+The current frontend supports offline edits using a local sync queue. This is **not** persisted to a backend yet.
+
+Future API extensions could include:
+
+- `POST /readiness/{learnerId}/skills`
+- `PATCH /readiness/{learnerId}/skills/{skillId}`
+- `DELETE /readiness/{learnerId}/skills/{skillId}`
+
+These are intentionally excluded from the current contract.
 
 ---
 
@@ -189,9 +152,9 @@ This separation allows:
 
 ## 9. Versioning Strategy
 
-* Versioned at the URL level (`/api/v1`)
-* Breaking changes require a new version
-* Fields are treated as additive, not mutable
+- Versioned at the URL level (`/api/v1`)
+- Breaking changes require a new version
+- Fields are treated as additive, not mutable
 
 ---
 
@@ -199,10 +162,10 @@ This separation allows:
 
 Future additions that will not break this contract:
 
-* Historical readiness snapshots
-* Program-specific readiness views
-* Trend indicators
-* Coach or educator annotations
+- Historical readiness snapshots
+- Program-specific readiness views
+- Trend indicators
+- Coach or educator annotations
 
 ---
 
@@ -214,3 +177,4 @@ Its responsibility is to provide a stable, predictable readiness snapshot while 
 
 This design supports clarity, flexibility, and long-term maintainability.
 
+---

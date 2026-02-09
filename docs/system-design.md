@@ -17,26 +17,30 @@ This system is designed as a frontend-only implementation consuming mocked data,
 - Visualization of readiness across multiple skill areas
 - Generation of simple insights and recommendations
 - Mobile-first learner-facing experience
+- Offline-first behavior (local persistence + sync queue)
+- PWA installability and offline fallback
 
 ### Out of Scope
 
 - Authentication and user management
-- Data persistence
 - Backend services
 - AI or adaptive recommendation models
+- Multi-learner history and analytics
 
 ---
 
 ## 3. High-Level Architecture
 
-The system separates raw data, interpretation logic, and presentation to ensure clarity, testability, and future extensibility.
+The system separates raw data, interpretation logic, state, and presentation to ensure clarity, testability, and future extensibility.
 
 ```mermaid
 graph TD
   A[Mock Readiness Data] --> B[Interpretation Layer]
-  B --> C[Application State]
+  B --> C[App State]
   C --> D[UI Components]
-````
+  C --> E[Offline Queue]
+  E --> C
+```
 
 **Key principle:**
 Raw scores are never rendered directly. All values pass through an interpretation layer before reaching the UI.
@@ -45,65 +49,36 @@ Raw scores are never rendered directly. All values pass through an interpretatio
 
 ## 4. Data Model
 
-### 4.1 Core Types
+### 4.1 Core Types (Current)
 
 ```ts
-ReadinessSnapshot {
-  learnerId: string
-  generatedAt: string
+ReadinessData {
   overallScore: number
-  categories: ReadinessCategory[]
+  skills: Skill[]
 }
-```
 
-```ts
-ReadinessCategory {
+Skill {
   id: string
   label: string
   score: number
-  description: string
 }
 ```
-
----
 
 ### 4.2 Mock Data Contract
 
 ```json
 {
-  "learnerId": "learner-001",
-  "generatedAt": "2026-01-15T10:00:00Z",
   "overallScore": 65,
-  "categories": [
-    {
-      "id": "academics",
-      "label": "Academics",
-      "score": 80,
-      "description": "Academic readiness for further study"
-    },
-    {
-      "id": "career_skills",
-      "label": "Career Skills",
-      "score": 60,
-      "description": "Preparation for the workplace"
-    },
-    {
-      "id": "life_skills",
-      "label": "Life Skills",
-      "score": 70,
-      "description": "Independence and self-management"
-    },
-    {
-      "id": "entrepreneurship",
-      "label": "Entrepreneurship",
-      "score": 50,
-      "description": "Innovation and initiative"
-    }
+  "skills": [
+    { "id": "academics", "label": "Academics", "score": 80 },
+    { "id": "career", "label": "Career Skills", "score": 60 },
+    { "id": "life", "label": "Life Skills", "score": 70 },
+    { "id": "entrepreneurship", "label": "Entrepreneurship", "score": 50 }
   ]
 }
 ```
 
-This structure mirrors a future readiness service API response.
+This structure mirrors a future readiness service response, simplified for this exercise.
 
 ---
 
@@ -113,24 +88,20 @@ This structure mirrors a future readiness service API response.
 
 | Score Range | Meaning              |
 | ----------- | -------------------- |
-| 0–39        | Just starting        |
-| 40–59       | Building foundations |
+| 0–39        | Getting started      |
+| 40–59       | Making progress      |
 | 60–79       | On track             |
 | 80–100      | Highly ready         |
 
----
-
 ### 5.2 Insight Rules
 
-- **Strongest area:** category with highest score
-- **Focus area:** category with lowest score
-- **Balanced profile:** difference between highest and lowest scores ≤ 15
-
-Insights are generated deterministically on the client.
+- **Strongest area:** skill with highest score
+- **Focus area:** skill with lowest score
+- **Balanced profile:** difference between highest and lowest scores ≤ 10
 
 Example:
 
-> “You are strongest in Academics. Focusing next on Entrepreneurship will improve your overall readiness.”
+> “Strongest area: Academics. Focus next on Entrepreneurship to lift your overall readiness.”
 
 ---
 
@@ -138,67 +109,50 @@ Example:
 
 ```mermaid
 graph TD
-  A[AppShell]
-  A --> B[ReadinessOverview]
-  A --> C[SkillBreakdown]
-  C --> D[SkillItem]
-  A --> E[InsightPanel]
+  A[Root Shell]
+  A --> B[Readiness Overview]
+  A --> C[Insight Panel]
+  A --> D[Skill Breakdown]
+  D --> E[Skill Row]
+  A --> F[Skill Drawer]
 ```
 
-**Responsibilities**
+Responsibilities:
 
 - `ReadinessOverview`: summary and overall status
-- `SkillBreakdown`: comparison across skill areas
 - `InsightPanel`: interpretation and recommendation messaging
+- `SkillBreakdown`: list, search, and filters
+- `SkillDrawer`: view, create, edit, delete flows
 
 ---
 
-## 7. Data Flow
+## 7. Offline Architecture
 
-```mermaid
-sequenceDiagram
-  participant Data as Mock Data
-  participant Logic as Interpreter
-  participant State as App State
-  participant UI as UI Layer
+Offline-first behavior is implemented entirely client-side:
 
-  Data->>Logic: Load snapshot
-  Logic->>State: Derived meaning & insights
-  State->>UI: Render learner view
-```
+- **IndexedDB** persists skills and offline queue
+- **Sync queue** stores create/edit/delete actions when offline
+- **Auto-sync** flushes queue on reconnect
+- **Service worker** provides offline fallback and caches core assets
 
 ---
 
-## 8. UI and UX Principles
-
-- Mobile-first layout
-- Meaning before numbers
-- Consistent visual scale across skill areas
-- Strengths emphasized without overstating
-- Growth areas highlighted constructively
-
-Interaction is kept minimal and intentional to avoid cognitive overload.
-
----
-
-## 9. Accessibility Considerations
+## 8. Accessibility Considerations
 
 - Color is never the sole carrier of meaning
-- Text labels accompany all indicators
+- Text labels accompany indicators
 - Adequate contrast for readability
 - Touch-friendly interaction targets
+- ARIA for error states and dialogs
 
 ---
 
-## 10. Future Extensions
+## 9. Future Extensions
 
 - Replace mock data with live API integration
-- Support historical readiness tracking
+- Add historical readiness tracking
 - Add educator or parent views
-- Introduce adaptive or AI-assisted recommendations
+- Introduce adaptive recommendations
+- Support conflict resolution on sync
 
 ---
-
-## 11. Design Rationale
-
-The system prioritizes learner understanding over analytical depth. Architectural separation ensures that future changes to scoring logic, data sources, or presentation can be made independently without restructuring the entire application.

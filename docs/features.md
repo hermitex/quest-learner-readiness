@@ -22,9 +22,8 @@ flowchart LR
   A[Authenticated Learner] --> B[Quest Dashboard]
   B --> C[Learner Readiness Screen]
   C --> D[Insight & Reflection]
-````
+```
 
-**Note:**
 Only the **Learner Readiness Screen** and its internal features are implemented in this submission.
 
 ---
@@ -33,45 +32,18 @@ Only the **Learner Readiness Screen** and its internal features are implemented 
 
 ### Implemented Features
 
-1. Learner Authentication (contextual, out-of-scope)
-2. Learner Readiness Overview
-3. Skill Area Breakdown
-4. Insight & Recommendation Generation
-5. Interactive Skill Focus
-6. Standardized API Consumption
-7. Client-Side Interpretation Logic
+1. Learner Readiness Overview
+2. Skill Area Breakdown
+3. Insight & Recommendation Generation
+4. Skill Management Drawer (view, create, edit, delete)
+5. Search and Filter for Skills
+6. Validation and Feedback (toasts, errors)
+7. Offline Persistence + Sync Queue
+8. PWA Installability + Offline Fallback
 
 ---
 
-## 4. Feature 1 — Learner Authentication (Context Only)
-
-### Description
-
-Represents the learner’s authenticated entry into the Quest platform.
-
-### Capabilities
-
-- Ensures readiness data is learner-specific
-- Provides identity context for API requests
-
-### Limitations
-
-- Authentication is **not implemented**
-- Assumed to be handled upstream by the Quest platform
-
-### Interaction
-
-```mermaid
-sequenceDiagram
-  participant Learner
-  participant Quest as Quest Platform
-  Learner->>Quest: Login
-  Quest-->>Learner: Authenticated Session
-```
-
----
-
-## 5. Feature 2 — Learner Readiness Overview
+## 4. Feature — Learner Readiness Overview
 
 ### Description
 
@@ -88,17 +60,9 @@ Displays a high-level summary of the learner’s readiness state.
 - Single snapshot only
 - No historical comparison
 
-### Internal Flow
-
-```mermaid
-flowchart TD
-  A[Readiness Snapshot] --> B[Interpretation Logic]
-  B --> C[Overview UI]
-```
-
 ---
 
-## 6. Feature 3 — Skill Area Breakdown
+## 5. Feature — Skill Area Breakdown
 
 ### Description
 
@@ -109,23 +73,16 @@ Breaks readiness down across defined skill dimensions.
 - Displays per-skill readiness scores
 - Allows visual comparison
 - Identifies strengths and growth areas
+- Search and filter by skill name or status
 
 ### Limitations
 
 - Skill taxonomy is fixed
-- No user customization of skill areas
-
-### Internal Flow
-
-```mermaid
-flowchart TD
-  A[Categories Data] --> B[Skill Comparison]
-  B --> C[Skill Breakdown UI]
-```
+- No user-defined categories
 
 ---
 
-## 7. Feature 4 — Insight & Recommendation Generation
+## 6. Feature — Insight & Recommendation Generation
 
 ### Description
 
@@ -142,135 +99,78 @@ Generates learner-facing insights from readiness data.
 - Rule-based only
 - No AI or personalization beyond scores
 
-### Logic Flow
-
-```mermaid
-flowchart TD
-  A[Scores] --> B[Rule Evaluation]
-  B --> C[Insight Message]
-```
-
 ---
 
-## 8. Feature 5 — Interactive Skill Focus
+## 7. Feature — Skill Management Drawer
 
 ### Description
 
-Provides a lightweight interaction to explore skill areas.
+A slide-over drawer enables learners to view, create, edit, and delete skill areas without losing context.
 
 ### Capabilities
 
-- Tap/click to focus a skill
-- Updates insight message dynamically
-- No navigation or modal context switch
+- View skill detail context
+- Create new skill area
+- Edit skill name and score
+- Delete skill area with confirmation
+- Inline validation with user-friendly errors
 
 ### Limitations
 
-- One skill focused at a time
-- No deep drill-down
-
-### Interaction Flow
-
-```mermaid
-sequenceDiagram
-  participant User
-  participant UI
-  User->>UI: Select skill
-  UI->>UI: Highlight skill
-  UI->>UI: Update insight
-```
+- Local-only data changes
+- No multi-user conflict handling
 
 ---
 
-## 9. Feature 6 — Standardized API Consumption
+## 8. Feature — Offline Persistence + Sync
 
 ### Description
 
-Consumes readiness data via a stable, versioned API contract.
+Changes are retained offline and synced when network returns.
 
 ### Capabilities
 
-- Uses standard response envelope
-- Backend-agnostic
-- Easily replaceable mock data source
+- IndexedDB persistence for skills
+- Offline queue for create/edit/delete
+- Auto-sync on reconnect
+- Sync and offline status badges
 
 ### Limitations
 
-- Read-only
-- No mutation or submission endpoints
-
-### Data Flow
-
-```mermaid
-flowchart LR
-  API[Readiness API] --> Client[Frontend State]
-  Client --> UI[UI Components]
-```
+- No real server sync yet
+- Conflict resolution not implemented
 
 ---
 
-## 10. Feature 7 — Client-Side Interpretation Logic
+## 9. Feature — PWA Installability
 
 ### Description
 
-Separates raw data from learner-facing meaning.
+The app is installable and provides offline resilience.
 
 ### Capabilities
 
-- Converts scores into states (e.g. “On track”)
-- Keeps backend logic minimal
-- Enables multiple future clients
-
-### Limitations
-
-- Interpretation rules are static
-- Requires redeploy for rule changes
+- Web manifest with icons
+- Service worker for offline fallback
+- Cached assets for faster cold starts
 
 ---
 
-## 11. Feature Interaction Map
+## 10. Known Limitations (System-Level)
 
-```mermaid
-flowchart TD
-  A[Readiness API] --> B[Client State]
-  B --> C[Interpretation Logic]
-  C --> D[Overview UI]
-  C --> E[Skill Breakdown UI]
-  C --> F[Insight Panel]
-```
-
----
-
-## 12. Known Limitations (System-Level)
-
-- No persistence
 - No authentication
-- No history or trends
-- No AI-driven recommendations
-- No offline support
-
-These are **intentionally excluded** to maintain focus and clarity.
+- No backend persistence
+- No historical trends or analytics
+- No multi-learner data model
 
 ---
 
-## 13. Design Rationale
+## 11. Future Feature Extensions (Non-Blocking)
 
-Features are intentionally small, composable, and learner-focused.
-
-The system prioritizes:
-
-- Understanding over analytics
-- Guidance over data density
-- Simplicity over feature breadth
-
-This approach aligns with the learner context and task scope.
-
----
-
-## 14. Future Feature Extensions (Non-Blocking)
-
+- Live API integration with server sync
+- Conflict resolution for offline edits
 - Historical readiness tracking
 - Educator and parent views
-- Program-specific readiness
 - Adaptive recommendations
-- Content linking from insights
+
+---

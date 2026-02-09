@@ -37,6 +37,18 @@ Open `http://localhost:3000`.
 
 ---
 
+## PWA and Offline Support
+
+This app is installable and resilient in low-connectivity environments:
+
+- Web manifest + app icons for install
+- Service worker caches core assets and the offline screen
+- IndexedDB persistence for skills and offline edits
+- Sync queue flushes changes when the device reconnects
+- Offline and syncing banners provide user feedback
+
+---
+
 ## UI Structure
 
 The UI is intentionally limited to 2–4 key screens to reduce cognitive load:
@@ -84,9 +96,10 @@ Interpretation and insights are derived client-side:
 
 Meaningful interactions included:
 
-- Skill drawer that slides over the dashboard for detail view
-- Edit, create, and delete flows inside the drawer
-- Hover and focus states to make skill areas easier to scan
+- Drawer-based skill detail and edit flows
+- Search and filter for fast scanning
+- Validation for skill names and score ranges
+- Offline and sync feedback
 
 Language is neutral and encouraging, aligning with Nova Pioneer’s culture principles.
 
@@ -99,8 +112,9 @@ Language is neutral and encouraging, aligning with Nova Pioneer’s culture prin
 - TypeScript
 - Tailwind CSS
 - Zustand
+- IndexedDB (local persistence)
+- Service Worker + Web Manifest (PWA)
 - Lucide Icons
-- Local JSON mocks
 
 No external services or databases are required.
 
@@ -109,24 +123,26 @@ No external services or databases are required.
 ## Assumptions & Tradeoffs
 
 - Data is mocked locally to mirror a future readiness API.
-- No persistence is implemented so edits reset on refresh.
+- Skill edits are stored locally and synced when online.
 - The side drawer is the primary interaction pattern to keep learners oriented.
 
 Extension ideas:
 
 - Replace the mock with a real API client and caching
-- Add offline caching for low-connectivity scenarios
+- Add offline-first conflict resolution
 - Add learner profile and goal-setting views
 
 ---
 
 ## Documentation
 
-Design and system rationale are captured in `docs/`:
+Design and system rationale are captured in `/docs`:
 
-- `docs/system-design.md`
-- `docs/api-design.md`
-- `docs/ui-ux-design.md`
+- [System Design](docs/system-design.md)
+- [API Design](docs/api-design.md)
+- [UI/UX Design](docs/ui-ux-design.md)
+- [Feature Inventory](docs/features.md)
+- [Folder Structure](docs/folder-structure.md)
 
 ---
 

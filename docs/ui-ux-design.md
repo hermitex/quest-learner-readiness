@@ -2,281 +2,139 @@
 
 ## 1. Purpose
 
-This document defines the user interface and user experience design for the **Quest Learner Readiness experience**.
+This document defines the user interface and user experience design for the Quest Learner Readiness experience.
 
-It specifies layout structure, visual hierarchy, interaction patterns, behavioral rules, and state transitions — **not visual polish, branding, or aesthetic assets**.
+It specifies layout structure, visual hierarchy, interaction patterns, behavioral rules, and state transitions.
 
 The primary goal is to ensure learners clearly and calmly understand:
+
 - Where they stand
 - What they are doing well
 - What to focus on next
 
-The experience is designed to feel **familiar, reassuring, and effortless**, requiring no instructions or learning curve.
+The experience is designed to feel familiar, reassuring, and effortless.
 
 ---
 
 ## 2. Target User Context
 
-- **Age:** 15–18
-- **Primary device:** Mobile phone (tablet secondary)
-- **Usage environment:** Short sessions, intermittent connectivity, distraction-prone
-- **Emotional context:** Uncertainty about the future, need for reassurance and direction
+- Age: 15–18
+- Primary device: Mobile phone (tablet secondary)
+- Usage environment: Short sessions, intermittent connectivity
+- Emotional context: Uncertainty about the future, need for reassurance and direction
 
-All design decisions prioritize:
-- Emotional safety
-- Cognitive ease
-- Familiar interaction patterns
-
-Over density, novelty, or expressive UI experimentation.
+All design decisions prioritize emotional safety, cognitive ease, and familiar interaction patterns.
 
 ---
 
 ## 3. Core UX Principles
 
-1. **Meaning before numbers**  
-   Learners should understand readiness without interpreting raw scores.
-
-2. **Progress, not judgment**  
-   Language and visuals avoid evaluative or negative framing.
-
-3. **Low cognitive load**  
-   Information is revealed progressively and predictably.
-
-4. **Consistency and familiarity**  
-   The same layout logic, visual scales, and language patterns are reused throughout.
-
-5. **Don’t make the learner think**  
-   Interaction should feel natural and expected, not instructional.
+1. Meaning before numbers
+2. Progress, not judgment
+3. Low cognitive load
+4. Consistency and familiarity
+5. Don’t make the learner think
 
 ---
 
 ## 4. Primary Interaction Pattern — Side Drawer Workflow
 
-The readiness experience uses a **side drawer / slide-over pattern**, not full page navigation.
+The readiness experience uses a side drawer / slide-over pattern, not full page navigation.
 
-### Rationale
+Rationale:
+
 - Preserves spatial context
-- Avoids mental “page reset”
+- Avoids mental page reset
 - Reduces navigation anxiety
-- Keeps the learner oriented at all times
+- Keeps the learner oriented
 
-### Rules
-- The background context remains visible but inactive
-- The drawer owns focus while open
-- Closing the drawer restores the exact previous state
-- No hard route changes are required for core interactions
+Rules:
 
-This pattern is foundational and **non-negotiable**.
+- Background remains visible but inactive
+- Drawer owns focus while open
+- Closing the drawer restores the previous state
 
 ---
 
 ## 5. Interaction States (Not Pages)
 
-The experience consists of a **single persistent surface** with multiple interaction states.
+The experience consists of a single persistent surface with multiple interaction states.
 
-### Defined States
-- **Overview State** — default readiness view
-- **Breakdown State** — expanded skill comparison view
+Defined states:
 
-State transitions are lightweight, reversible, and non-destructive.
-
-### State Transition Model
-
-```mermaid
-stateDiagram-v2
-  [*] --> Overview
-  Overview --> Breakdown : open skill breakdown
-  Breakdown --> Overview : close drawer
-  Breakdown --> Breakdown : focus skill
-````
+- Overview state
+- Breakdown state
+- Drawer state (view, create, edit, delete)
 
 ---
 
 ## 6. Overview State — Learner Dashboard
 
-### 6.1 Purpose
+Purpose: Provide immediate clarity about readiness and a single next step.
 
-Provide immediate clarity about overall readiness and a single next step.
+Layout structure (top to bottom):
 
----
+1. Readiness meaning
+2. Overall readiness indicator
+3. Insight / recommendation message
+4. Skill breakdown entry
 
-### 6.2 Layout Structure (Top → Bottom)
+Behavioral rules:
 
-1. **Readiness Meaning**
-
-   * Human-readable status (e.g. “On track”)
-   * One short explanatory sentence
-
-2. **Overall Readiness Indicator**
-
-   * Visual indicator (progress ring or bar)
-   * Numeric score shown only as secondary information
-
-3. **Recommendation Message**
-
-   * One short, actionable insight
-   * Encouraging, non-prescriptive tone
-
-4. **Skill Breakdown Entry**
-
-   * Compact preview of skill areas
-   * Entry point into the Breakdown State
-
----
-
-### 6.3 Behavioral Rules
-
-* Readiness meaning is visible without scrolling
-* Numeric values never appear without contextual language
-* Only one recommendation is shown at a time
-* No instructional hints or walkthroughs are required
+- Readiness meaning is visible without scrolling
+- Numeric values never appear without context
+- Only one recommendation is shown at a time
 
 ---
 
 ## 7. Breakdown State — Skill Breakdown View
 
-### 7.1 Purpose
+Purpose: Allow learners to compare strengths and growth areas without overwhelm.
 
-Allow learners to compare strengths and growth areas without overwhelming detail.
+Layout structure:
 
----
+- Search + filter row
+- Vertical list of skill items
+- Each item shows label, score, and progress indicator
 
-### 7.2 Layout Structure
-
-* Vertical list of skill items
-* Each item includes:
-
-  * Skill label
-  * Visual score indicator
-  * Subtle relative emphasis
-
----
-
-### 7.3 Visual Hierarchy
+Visual hierarchy:
 
 1. Skill name
-2. Visual indicator
-3. Numeric score (optional, secondary)
-
-Strongest and weakest skills are **distinguishable but never exaggerated**.
+2. Progress bar
+3. Numeric score
 
 ---
 
-## 8. Interaction Design
+## 8. Drawer State — Skill Management
 
-### 8.1 Skill Focus Interaction
+Purpose: Keep learners in context while viewing or editing a skill.
 
-**Interaction:**
-Tap on a skill item.
+Features:
 
-**Result:**
-
-* Selected skill is highlighted
-* Insight message updates to reflect the selected skill
-* No modal, page change, or navigation interruption
-
-**Rationale:**
-Supports exploration without breaking flow or context.
+- Clear heading + short context copy
+- Single, unified score control (slider + value pill)
+- Inline validation with clear errors
 
 ---
 
-### 8.2 Focus and Attention Management
+## 9. Offline UX
 
-* When the drawer opens, focus transfers to the drawer container
-* Background content is visually de-emphasized but remains visible
-* Keyboard focus is trapped within the drawer while open
-* Closing the drawer restores focus to the invoking element
+The interface should be resilient during connectivity drops:
 
----
-
-## 9. Copy and Language Guidelines
-
-* Short, simple sentences
-* Plain, everyday language
-* Encouraging and neutral tone
-
-Examples:
-
-* “You’re building steadily across these areas.”
-* “Focusing next on Career Skills can strengthen your readiness.”
-
-Avoid:
-
-* “Low performance”
-* “Weakness”
-* “Deficient”
-* Any comparison to other learners
+- Offline banner when disconnected
+- Syncing badge when changes are flushing
+- Offline edits are allowed and queued
 
 ---
 
-## 10. Accessibility Considerations
+## 10. Copy and Language Guidelines
 
-* Text labels always accompany visual indicators
-* Color is never the sole indicator of meaning
-* Sufficient contrast for readability
-* Large, comfortable touch targets
-* No reliance on hover-only interactions
+- Short, simple sentences
+- Plain, everyday language
+- Encouraging and neutral tone
 
----
+Example:
 
-## 11. Responsive Behavior
-
-* Mobile-first layout
-* Single-column flow
-* Identical interaction patterns across breakpoints
-* Tablet and desktop scale spacing only, not structure
+- “You’re building steadily across these areas.”
 
 ---
-
-## 12. Loading, Empty, and Edge States
-
-### 12.1 Loading State
-
-* Calm, non-distracting loading indicator
-* No partial or misleading readiness content during load
-
----
-
-### 12.2 Missing Data
-
-* Display neutral message:
-
-  > “Your readiness data is not available yet.”
-
----
-
-### 12.3 Balanced Profile
-
-* If no clear strongest or weakest area exists:
-
-  * Display a balanced progress message
-  * Avoid highlighting a specific focus area
-
----
-
-## 13. Explicit UX Non-Goals
-
-The following are intentionally excluded:
-
-* Gamification (badges, streaks, leaderboards)
-* Comparative ranking against other learners
-* Dense charts or analytical dashboards
-* Multi-step wizards or forced tutorials
-* Instructional overlays that interrupt flow
-
-These exclusions preserve calmness, familiarity, and cognitive ease.
-
----
-
-## 14. Design Rationale
-
-The UI is designed to **reduce anxiety and encourage reflection**.
-
-Every element exists to support learner understanding rather than system transparency or technical completeness.
-
-This design ensures:
-
-* Clear communication
-* Minimal friction
-* A strong feeling of being “at home”
-* Easy future extension without redesign
