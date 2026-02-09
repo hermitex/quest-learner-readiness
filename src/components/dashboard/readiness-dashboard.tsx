@@ -21,9 +21,13 @@ export function ReadinessDashboard() {
   const insight = deriveInsight(skills);
 
   return (
-    <div className="space-y-6">
-      <OverallSummary score={overallScore} meaning={meaning} />
-      <Insight message={insight} />
+    <div className="space-y-5">
+      {/* Top section: 2-col on desktop, stacked on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <OverallSummary score={overallScore} meaning={meaning} />
+        <Insight message={insight} skills={skills} />
+      </div>
+
       <SkillBreakdown skills={skills} />
     </div>
   );
