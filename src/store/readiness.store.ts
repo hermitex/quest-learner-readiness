@@ -6,13 +6,15 @@ import { getPersistedState, setPersistedState } from "@/src/utils/indexed-db";
 
 export type { SkillKey };
 
+type PendingItem = {
+  type: "create" | "edit" | "delete";
+  payload: unknown;
+  queuedAt: number;
+};
+
 type ReadinessState = {
   skills: Skill[];
-  pendingQueue: Array<{
-    type: "create" | "edit" | "delete";
-    payload: unknown;
-    queuedAt: number;
-  }>;
+  pendingQueue: PendingItem[];
   isSyncing: boolean;
 
   drawerMode: DrawerMode | null;
@@ -45,6 +47,28 @@ function isOnline() {
   return navigator.onLine;
 }
 
+function isPendingItem(value: unknown): value is PendingItem {
+  if (!value || typeof value !== "object") return false;
+  const item = value as PendingItem;
+  return (
+    (item.type === "create" || item.type === "edit" || item.type === "delete") &&
+    typeof item.queuedAt === "number"
+  );
+}
+
+function sanitizeQueue(value: unknown): PendingItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(isPendingItem);
+}
+
+function enqueue(
+  queue: PendingItem[],
+  type: PendingItem["type"],
+  payload: unknown
+): PendingItem[] {
+  return [...queue, { type, payload, queuedAt: Date.now() }];
+}
+
 export const useReadinessStore = create<ReadinessState>((set) => ({
   skills: MOCK_READINESS.skills,
   pendingQueue: [],
@@ -72,10 +96,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
         pendingAction: null,
         pendingQueue: online
           ? state.pendingQueue
-          : [
-              ...state.pendingQueue,
-              { type: "create", payload: skill, queuedAt: Date.now() },
-            ],
+          : enqueue(state.pendingQueue, "create", skill),
       };
       setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
       return next;
@@ -104,14 +125,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
         pendingAction: null,
         pendingQueue: online
           ? state.pendingQueue
-          : [
-              ...state.pendingQueue,
-              {
-                type: "edit",
-                payload: { id, label, score },
-                queuedAt: Date.now(),
-              },
-            ],
+          : enqueue(state.pendingQueue, "edit", { id, label, score }),
       };
       setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
       return next;
@@ -136,10 +150,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
         pendingAction: null,
         pendingQueue: online
           ? state.pendingQueue
-          : [
-              ...state.pendingQueue,
-              { type: "delete", payload: { id }, queuedAt: Date.now() },
-            ],
+          : enqueue(state.pendingQueue, "delete", { id }),
       };
       setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
       return next;
@@ -177,7 +188,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     if (!persisted) return;
     set({
       skills: (persisted.skills as Skill[]) ?? MOCK_READINESS.skills,
-      pendingQueue: (persisted.pendingQueue as ReadinessState["pendingQueue"]) ?? [],
+      pendingQueue: sanitizeQueue(persisted.pendingQueue),
     });
   },
 }));
