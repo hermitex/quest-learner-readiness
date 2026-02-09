@@ -3,39 +3,64 @@
 import { Pencil, Trash2 } from "lucide-react";
 import { useReadinessStore } from "@/src/store/readiness.store";
 import { Card } from "../ui/card";
-import { Progress } from "../ui/progress";
+import { Progress, getScoreColor } from "../ui/progress";
 import type { Skill } from "@/src/types/readiness";
 
 type Props = {
   skill: Skill;
+  index?: number;
 };
 
-export function SkillRow({ skill }: Props) {
+export function SkillRow({ skill, index = 0 }: Props) {
   const viewSkill = useReadinessStore((s) => s.viewSkill);
   const openEdit = useReadinessStore((s) => s.openEdit);
   const openDelete = useReadinessStore((s) => s.openDelete);
 
+  const scoreColor = getScoreColor(skill.score);
+
   return (
-    <Card className="h-full p-3 md:p-3.5 space-y-1.5 transition-[box-shadow,border-color] duration-200 ease-out border-border/70 hover:border-primary/30 hover:shadow-sm">
+    <Card
+      className="animate-fade-in-up h-full p-3 md:p-4 space-y-2 cursor-pointer transition-[box-shadow,border-color,transform] duration-200 ease-out border-border/70 hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5"
+      style={{ animationDelay: `${200 + index * 60}ms` }}
+      onClick={() => viewSkill(skill.id)}
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${skill.label}`}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          viewSkill(skill.id);
+        }
+      }}
+    >
       <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => viewSkill(skill.id)}
-          className="flex-1 text-left text-sm font-semibold truncate"
-          aria-label={`View details for ${skill.label}`}
-        >
-          {skill.label}
-        </button>
+        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+          {/* Color dot indicator */}
+          <span
+            className="shrink-0 w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: scoreColor }}
+            aria-hidden
+          />
+          <span className="text-sm font-semibold truncate">
+            {skill.label}
+          </span>
+        </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xs font-semibold text-text-secondary tabular-nums w-10 text-right">
+          <span
+            className="text-xs font-bold tabular-nums w-10 text-right"
+            style={{ color: scoreColor }}
+          >
             {skill.score}%
           </span>
 
           <button
             type="button"
-            onClick={() => openEdit(skill.id)}
-            className="p-1.5 rounded text-text-muted hover:text-primary hover:bg-surface-muted transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(skill.id);
+            }}
+            className="p-2 rounded-lg text-text-muted hover:text-primary hover:bg-surface-muted transition-colors"
             aria-label={`Edit ${skill.label}`}
           >
             <Pencil className="w-3.5 h-3.5" />
@@ -43,8 +68,11 @@ export function SkillRow({ skill }: Props) {
 
           <button
             type="button"
-            onClick={() => openDelete(skill.id)}
-            className="p-1.5 rounded text-text-muted hover:text-danger hover:bg-surface-muted transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              openDelete(skill.id);
+            }}
+            className="p-2 rounded-lg text-text-muted hover:text-danger hover:bg-surface-muted transition-colors"
             aria-label={`Remove ${skill.label}`}
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -52,15 +80,7 @@ export function SkillRow({ skill }: Props) {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => viewSkill(skill.id)}
-        className="w-full pt-1"
-        tabIndex={-1}
-        aria-hidden
-      >
-        <Progress value={skill.score} size="sm" />
-      </button>
+      <Progress value={skill.score} size="sm" colorByValue />
     </Card>
   );
 }
