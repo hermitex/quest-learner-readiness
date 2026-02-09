@@ -1,2 +1,2 @@
-export { Progress } from "./progress";
+export { Progress, getScoreColor, getScoreColorClass } from "./progress";
 export type { ProgressProps } from "./progress";
