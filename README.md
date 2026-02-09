@@ -2,15 +2,15 @@
 
 ## Overview
 
-This project implements a learner-facing readiness dashboard for **Quest**, Nova Pioneer’s Post School Success Platform.
+This project implements a learner-facing readiness dashboard for Quest, Nova Pioneer’s post-school success platform.
 
-The application presents a clear, human-understandable view of a learner’s readiness for life after secondary school by:
+The application presents a clear, human-readable view of readiness for life after secondary school by:
 
 - Displaying an overall readiness state
-- Breaking readiness down across key skill areas
-- Surfacing focused, encouraging insights and next steps
+- Breaking readiness down across skill areas
+- Surfacing focused insights and next steps
 
-The emphasis of this submission is **clarity of thinking, system design, and UI/UX intent**, rather than backend implementation or visual polish.
+The emphasis is clarity of thinking, system design, and UI/UX intent over backend complexity.
 
 ---
 
@@ -22,108 +22,116 @@ Learners using Quest need a simple, motivating way to understand:
 - What they are doing well
 - What to focus on next
 
-The primary user is a **15–18 year old learner in Kenya**, accessing the platform in a **mobile-first context**.
+Primary user: a 15–18 year old learner in Kenya using a mobile-first experience.
 
 ---
 
-## Project Scope
+## How To Run
 
-### Included
+```bash
+npm install
+npm run dev
+```
 
-- Learner readiness dashboard
-- Skill-area breakdown
-- Client-side interpretation and insight generation
-- Mobile-first UI
-- Mocked data using a stable, API-ready contract
-
-### Excluded
-
-- Authentication and user management
-- Backend services
-- Data persistence
-- AI or adaptive recommendation logic
-
----
-
-## System Documentation
-
-This repository is **documented before implementation** to demonstrate system thinking and design clarity.
-
-All core design decisions are captured in the [`/docs`](docs/) directory:
-
-- **[System Design](docs/system-design.md)**  
-  High-level architecture, data flow, responsibilities, and design rationale
-
-- **[API Design](docs/api-design.md)**  
-  API contract, standard response envelope, versioning, and extensibility strategy
-
-- **[UI/UX Design](docs/ui-ux-design.md)**  
-  Screen structure, layout hierarchy, interactions, and accessibility considerations
-
----
-
-## Data and Interpretation
-
-### Mock Data
-
-The application uses locally mocked JSON data that mirrors a future backend API response.
-
-The data includes:
-
-- An overall readiness score
-- A breakdown across multiple skill areas
-- Metadata required for deterministic interpretation
-
-### Interpretation Logic
-
-All meaning is derived on the client:
-
-- Scores are translated into human-readable states (e.g. “On track”)
-- Strongest and focus areas are identified deterministically
-- Learner-facing insights are generated dynamically
-
-Raw scores are never rendered without contextual meaning.
+Open `http://localhost:3000`.
 
 ---
 
 ## UI Structure
 
-The UI is intentionally limited to **two core views** to minimize cognitive load:
+The UI is intentionally limited to 2–4 key screens to reduce cognitive load:
 
-1. **Learner Dashboard**
-   - Overall readiness state
-   - Short explanatory text
-   - Single recommendation or encouragement
+- Learner dashboard
+- Skill breakdown list with focused drawer
+- Drawer forms for create/edit/delete skill areas
 
-2. **Skill Breakdown**
-   - Comparison across skill areas
-   - Lightweight interaction to focus on a selected skill
+Core components:
 
-The design prioritizes:
+- `src/components/dashboard/readiness-dashboard.tsx`
+- `src/components/dashboard/overall-summary.tsx`
+- `src/components/dashboard/skill-breakdown.tsx`
+- `src/components/layout/side-drawer/skill-drawer.tsx`
 
-- Meaning before numbers
-- Clear visual hierarchy
-- Encouraging, neutral language
+---
+
+## Mock Data
+
+The UI is powered by local JSON:
+
+File: `src/services/mocks/readiness.json`
+
+```json
+{
+  "overallScore": 65,
+  "skills": [
+    { "id": "academics", "label": "Academics", "score": 80 },
+    { "id": "career", "label": "Career Skills", "score": 60 },
+    { "id": "life", "label": "Life Skills", "score": 70 },
+    { "id": "entrepreneurship", "label": "Entrepreneurship", "score": 50 }
+  ]
+}
+```
+
+Interpretation and insights are derived client-side:
+
+- Scores are translated into human-readable states
+- Strongest and focus areas are identified deterministically
+- Learner-facing insights update as the data changes
+
+---
+
+## Interaction & UX
+
+Meaningful interactions included:
+
+- Skill drawer that slides over the dashboard for detail view
+- Edit, create, and delete flows inside the drawer
+- Hover and focus states to make skill areas easier to scan
+
+Language is neutral and encouraging, aligning with Nova Pioneer’s culture principles.
 
 ---
 
 ## Technology Stack
 
-- **[React](https://react.dev/)** — component-based UI development
-- **[Next.js](https://nextjs.org/)** — application framework and routing
-- **[TypeScript](https://www.typescriptlang.org/)** — static typing and safer code
-- **[Tailwind CSS](https://tailwindcss.com/)** — utility-first styling
-- **[Axios](https://axios-http.com/)** — HTTP client for API communication
-- **[TanStack Query](https://tanstack.com/query/latest)** — server-state management and caching
-- **[Zustand](https://zustand-demo.pmnd.rs/)** — lightweight client-side state management
-- Local JSON files for mocked data
+- React
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Zustand
+- Lucide Icons
+- Local JSON mocks
 
 No external services or databases are required.
 
 ---
 
-## Running the Project Locally
+## Assumptions & Tradeoffs
 
-```bash
-npm install
-npm run dev
+- Data is mocked locally to mirror a future readiness API.
+- No persistence is implemented so edits reset on refresh.
+- The side drawer is the primary interaction pattern to keep learners oriented.
+
+Extension ideas:
+
+- Replace the mock with a real API client and caching
+- Add offline caching for low-connectivity scenarios
+- Add learner profile and goal-setting views
+
+---
+
+## Documentation
+
+Design and system rationale are captured in `docs/`:
+
+- `docs/system-design.md`
+- `docs/api-design.md`
+- `docs/ui-ux-design.md`
+
+---
+
+## Loom Walkthrough
+
+Add your Loom walkthrough link here:
+
+- Loom: `REPLACE_WITH_LOOM_LINK`
