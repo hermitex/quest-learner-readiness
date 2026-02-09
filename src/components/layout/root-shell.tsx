@@ -6,6 +6,8 @@ import { Menu, Bell } from "lucide-react";
 import { Sidebar } from "@/src/components/layout/side-drawer/side-drawer";
 import { ToastViewport } from "@/src/components/ui/toast";
 import { useReadinessStore } from "@/src/store/readiness.store";
+import { useSession, signOut } from "next-auth/react";
+import { Button } from "@/src/components/ui/button";
 
 const PAGE_TITLES: Record<string, string> = {
   "/": "Readiness",
@@ -22,8 +24,14 @@ export function RootShell({ children }: RootShellProps) {
   const syncPending = useReadinessStore((s) => s.syncPending);
   const hydrate = useReadinessStore((s) => s.hydrate);
   const isSyncing = useReadinessStore((s) => s.isSyncing);
+  const { data: session } = useSession();
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] || "Quest";
+  const isAuthRoute = pathname === "/login";
+
+  if (isAuthRoute) {
+    return <div className="min-h-screen bg-background">{children}</div>;
+  }
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -93,13 +101,25 @@ export function RootShell({ children }: RootShellProps) {
 
               <div className="h-8 w-px bg-border" />
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-xs font-semibold text-white">
-                  L
+                  {session?.user?.name?.[0] ?? "L"}
                 </div>
-                <span className="hidden md:block text-sm font-medium text-text-primary">
-                  Learner
-                </span>
+                <div className="hidden md:flex flex-col leading-tight">
+                  <span className="text-sm font-medium text-text-primary">
+                    {session?.user?.name ?? "Learner"}
+                  </span>
+                  <span className="text-xs text-text-muted">
+                    {session?.user?.email ?? "demo@quest.app"}
+                  </span>
+                </div>
+                <Button
+                  variant="tertiary"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                >
+                  Sign out
+                </Button>
               </div>
             </div>
           </div>
