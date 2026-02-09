@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
       session: Session;
       token: JWT & { id?: string };
     }) {
-      if (session.user) {
+      if (session.user && typeof token.id === "string") {
         session.user.id = token.id;
       }
       return session;
