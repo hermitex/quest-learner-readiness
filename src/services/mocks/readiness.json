@@ -1,0 +1,9 @@
+{
+  "overallScore": 65,
+  "skills": [
+    { "id": "academics", "label": "Academics", "score": 80 },
+    { "id": "career", "label": "Career Skills", "score": 60 },
+    { "id": "life", "label": "Life Skills", "score": 70 },
+    { "id": "entrepreneurship", "label": "Entrepreneurship", "score": 50 }
+  ]
+}
