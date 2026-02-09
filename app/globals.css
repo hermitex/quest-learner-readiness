@@ -1,26 +1,79 @@
 @import "tailwindcss";
 
+/* ================================
+   ROOT DESIGN TOKENS
+   ================================ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core colors */
+  --color-background: #ffffff;
+  --color-foreground: #0f172a; /* slate-900 */
+
+  /* Brand */
+  --color-brand-primary: #1e3a77; /* Nova Pioneer Blue */
+  --color-brand-primary-soft: #2a4c8f;
+  --color-brand-accent: #facc15; /* yellow CTA accent */
+
+  /* Text */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569; /* slate-600 */
+  --color-text-muted: #94a3b8; /* slate-400 */
+
+  /* UI surfaces */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8fafc; /* slate-50 */
+  --color-border: #e2e8f0; /* slate-200 */
+
+  /* States */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* Typography */
+  --font-sans: "Montserrat", Arial, sans-serif;
 }
 
+/* ================================
+   TAILWIND THEME MAPPING
+   ================================ */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+
+  --color-primary: var(--color-brand-primary);
+  --color-primary-soft: var(--color-brand-primary-soft);
+  --color-accent: var(--color-brand-accent);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+
+  --color-surface: var(--color-surface);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-border: var(--color-border);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --font-sans: var(--font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ================================
+   BASE STYLES
+   ================================ */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.6;
 }
