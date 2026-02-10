@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function EditSkillForm({ skillId }: Props) {
-  const { skills, updateSkill, pendingAction } = useReadinessStore();
+  const { skills, updateSkill, pendingAction, closeDrawer } = useReadinessStore();
   const skill = skills.find((s) => s.id === skillId);
 
   const [label, setLabel] = useState(skill?.label ?? "");
@@ -52,9 +52,9 @@ export function EditSkillForm({ skillId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       {/* Scrollable fields */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-text-primary">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-text-primary">
             Update this skill area
           </p>
           <p className="text-xs text-text-secondary">
@@ -128,7 +128,16 @@ export function EditSkillForm({ skillId }: Props) {
       </div>
 
       {/* Sticky footer */}
-      <div className="shrink-0 border-t border-border px-5 py-4 bg-surface flex justify-end">
+      <div className="shrink-0 border-t border-border px-6 py-4 bg-surface flex justify-end gap-3">
+        <Button
+          type="button"
+          variant="tertiary"
+          onClick={closeDrawer}
+          className="px-6 py-2.5"
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
         <Button
           type="submit"
           disabled={!canSubmit || isSubmitting}

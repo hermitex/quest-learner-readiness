@@ -24,13 +24,18 @@ function useDrawerTitle(): string {
 }
 
 export function SkillDrawer() {
-  const { drawerMode, activeSkillId, closeDrawer } = useReadinessStore();
+  const { drawerMode, activeSkillId, closeDrawer, openEdit } =
+    useReadinessStore();
   const title = useDrawerTitle();
 
   return (
     <Drawer open={!!drawerMode} onClose={closeDrawer} title={title}>
       {drawerMode === "view" && activeSkillId && (
-        <SkillDrawerContent skillId={activeSkillId} />
+        <SkillDrawerContent
+          skillId={activeSkillId}
+          onClose={closeDrawer}
+          onEdit={openEdit}
+        />
       )}
       {drawerMode === "create" && <CreateSkillForm />}
       {drawerMode === "edit" && activeSkillId && (

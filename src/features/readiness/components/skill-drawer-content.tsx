@@ -1,5 +1,8 @@
+"use client";
+
 import { Card } from "@/src/components/ui/card";
 import { Progress } from "@/src/components/ui/progress";
+import { Button } from "@/src/components/ui/button";
 import { useReadinessStore } from "@/src/store/readiness.store";
 import type { SkillKey } from "@/src/types/readiness";
 
@@ -15,9 +18,11 @@ const COPY: Partial<Record<SkillKey, string>> = {
 
 type Props = {
   skillId: string;
+  onClose: () => void;
+  onEdit: (id: string) => void;
 };
 
-export function SkillDrawerContent({ skillId }: Props) {
+export function SkillDrawerContent({ skillId, onClose, onEdit }: Props) {
   const skill = useReadinessStore((s) =>
     s.skills.find((sk) => sk.id === skillId)
   );
@@ -34,7 +39,15 @@ export function SkillDrawerContent({ skillId }: Props) {
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div className="space-y-3">
           <p className="text-sm text-text-secondary">{insight}</p>
-          <Progress value={skill.score} showValue />
+          <Card variant="muted" className="p-4 space-y-2">
+            <div className="flex items-center justify-between text-xs text-text-secondary">
+              <span>Current score</span>
+              <span className="text-sm font-semibold text-text-primary">
+                {Math.round(skill.score)}%
+              </span>
+            </div>
+            <Progress value={skill.score} />
+          </Card>
         </div>
 
         <Card variant="muted" className="p-4 space-y-2">
@@ -50,6 +63,25 @@ export function SkillDrawerContent({ skillId }: Props) {
             Choose one small action to focus on this week.
           </p>
         </Card>
+      </div>
+
+      {/* Sticky footer */}
+      <div className="shrink-0 border-t border-border px-6 py-4 bg-surface flex justify-end gap-3">
+        <Button
+          type="button"
+          variant="tertiary"
+          onClick={onClose}
+          className="px-6 py-2.5"
+        >
+          Close
+        </Button>
+        <Button
+          type="button"
+          onClick={() => onEdit(skillId)}
+          className="px-6 py-2.5"
+        >
+          Edit Skill
+        </Button>
       </div>
     </div>
   );

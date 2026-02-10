@@ -7,7 +7,7 @@ import { Card } from "@/src/components/ui/card";
 import { useReadinessStore } from "@/src/store/readiness.store";
 
 export function CreateSkillForm() {
-  const { addSkill, pendingAction, skills } = useReadinessStore();
+  const { addSkill, pendingAction, skills, closeDrawer } = useReadinessStore();
   const [label, setLabel] = useState("");
   const [score, setScore] = useState(50);
 
@@ -44,9 +44,9 @@ export function CreateSkillForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full">
       {/* Scrollable fields */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-text-primary">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-text-primary">
             Add a new skill area
           </p>
           <p className="text-xs text-text-secondary">
@@ -122,7 +122,16 @@ export function CreateSkillForm() {
       </div>
 
       {/* Sticky footer */}
-      <div className="shrink-0 border-t border-border px-5 py-4 bg-surface flex justify-end">
+      <div className="shrink-0 border-t border-border px-6 py-4 bg-surface flex justify-end gap-3">
+        <Button
+          type="button"
+          variant="tertiary"
+          onClick={closeDrawer}
+          className="px-6 py-2.5"
+          disabled={isSubmitting}
+        >
+          Cancel
+        </Button>
         <Button
           type="submit"
           disabled={!canSubmit || isSubmitting}

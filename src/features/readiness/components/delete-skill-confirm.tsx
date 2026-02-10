@@ -19,7 +19,7 @@ export function DeleteSkillConfirm({ skillId }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         <Card variant="muted" className="p-4 space-y-2">
           <p className="text-sm text-text-primary">
             Are you sure you want to remove{" "}
