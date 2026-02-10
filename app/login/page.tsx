@@ -30,8 +30,8 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-6 md:p-10">
-      <Card className="w-full max-w-md p-7 md:p-8 space-y-6 shadow-sm">
-        <div className="flex flex-col items-center text-center space-y-3">
+      <Card className="w-full max-w-md p-7 md:p-8 shadow-sm">
+        <div className="flex flex-col items-center text-center">
           <div className="h-12 w-12 rounded-xl bg-primary/10 ring-1 ring-primary/10 flex items-center justify-center">
             <img
               src="/icon.svg"
@@ -39,19 +39,18 @@ export default function LoginPage() {
               className="h-7 w-7"
             />
           </div>
-          <div className="space-y-1">
+          <div className="mt-4 space-y-2">
             <h1 className="text-2xl font-semibold text-text-primary tracking-tight">
               Sign in to Quest
             </h1>
             <p className="text-sm text-text-secondary max-w-xs mx-auto">
-              Use the demo account to explore.
+              Access your learner dashboard.
             </p>
           </div>
-          <div className="h-1 w-10 rounded-full bg-accent/80" />
-          <Button
+          <div className="mt-4 h-1 w-10 rounded-full bg-accent/80" />
+          <button
             type="button"
-            variant="tertiary"
-            className="h-8 px-3 text-xs"
+            className="mt-4 inline-flex items-center justify-center rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 active:scale-[0.98]"
             onClick={() => {
               setEmail("demo@quest.app");
               setPassword("Quest123!");
@@ -59,38 +58,40 @@ export default function LoginPage() {
             }}
           >
             Use demo account
-          </Button>
+          </button>
+          <div className="mt-2 min-h-[16px] text-center text-xs text-text-secondary">
+            {demoLoaded && "Demo credentials loaded."}
+          </div>
         </div>
 
-        <div className="min-h-[44px]">
+        <div className="mt-4 min-h-[16px]">
           {error && (
             <div className="rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
               Invalid credentials. Use the demo account.
             </div>
           )}
         </div>
-        <div className="min-h-[20px] text-center text-xs text-text-secondary">
-          {demoLoaded && "Demo credentials loaded."}
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Email</label>
+        <form onSubmit={handleSubmit} className="mt-2 space-y-1">
+          <div>
+            <label className="mt-2 block text-sm font-medium">Email</label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              className="mt-1 mb-1"
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Password</label>
+          <div>
+            <label className="mt-2 block text-sm font-medium">Password</label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
+              className="mt-1 mb-1"
             />
           </div>
 
