@@ -152,6 +152,19 @@ Design and system rationale are captured in `/docs`:
 
 ---
 
+## Design Decisions
+
+Philosophy: **Don’t make me think.**
+
+The UI prioritizes immediate comprehension and low cognitive load:
+
+- Clear hierarchy with a single primary summary and a focused insight.
+- Scan-friendly skill list with consistent visual rhythm and strong affordances.
+- Progressive disclosure via drawers to keep context while revealing detail.
+- Subtle, meaningful feedback (sync states, deltas, validation) without noise.
+
+---
+
 ## Loom Walkthrough
 
 Add your Loom walkthrough link here:
