@@ -19,12 +19,19 @@ export function ReadinessDashboard() {
 
   const meaning = interpretReadiness(overallScore);
   const insight = deriveInsight(skills);
+  const strengthsCount = skills.filter((s) => s.score >= 75).length;
+  const growthCount = skills.filter((s) => s.score < 60).length;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Top section: 2-col on desktop, stacked on mobile */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <OverallSummary score={overallScore} meaning={meaning} />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.1fr_0.9fr]">
+        <OverallSummary
+          score={overallScore}
+          meaning={meaning}
+          strengthsCount={strengthsCount}
+          growthCount={growthCount}
+        />
         <Insight message={insight} skills={skills} />
       </div>
 

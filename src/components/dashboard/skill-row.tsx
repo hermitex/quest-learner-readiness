@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import clsx from "clsx";
 import { useReadinessStore } from "@/src/store/readiness.store";
 import { Card } from "../ui/card";
 import { Progress, getScoreColor } from "../ui/progress";
@@ -15,8 +16,24 @@ export function SkillRow({ skill, index = 0 }: Props) {
   const viewSkill = useReadinessStore((s) => s.viewSkill);
   const openEdit = useReadinessStore((s) => s.openEdit);
   const openDelete = useReadinessStore((s) => s.openDelete);
+  const delta = useReadinessStore((s) => s.skillDeltas[skill.id]);
 
   const scoreColor = getScoreColor(skill.score);
+  const isRecent = delta ? Date.now() - delta.at < 1000 * 60 * 60 * 24 * 14 : false;
+  const deltaLabel =
+    delta?.type === "new"
+      ? "New"
+      : delta?.type === "change"
+        ? `${delta.value > 0 ? "+" : ""}${delta.value}`
+        : null;
+  const deltaTone =
+    delta?.type === "new"
+      ? "accent"
+      : delta?.type === "change" && delta.value > 0
+        ? "success"
+        : delta?.type === "change" && delta.value < 0
+          ? "danger"
+          : "muted";
 
   return (
     <Card
@@ -46,7 +63,20 @@ export function SkillRow({ skill, index = 0 }: Props) {
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          {isRecent && deltaLabel && (
+            <span
+              className={clsx(
+                "rounded-full border px-2 py-0.5 text-[10px] font-semibold tabular-nums",
+                deltaTone === "accent" && "border-accent/30 bg-accent/15 text-accent",
+                deltaTone === "success" && "border-success/30 bg-success/10 text-success",
+                deltaTone === "danger" && "border-danger/30 bg-danger/10 text-danger",
+                deltaTone === "muted" && "border-border bg-surface-muted text-text-muted"
+              )}
+            >
+              {deltaLabel}
+            </span>
+          )}
           <span
             className="text-xs font-bold tabular-nums w-10 text-right"
             style={{ color: scoreColor }}

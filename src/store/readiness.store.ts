@@ -12,10 +12,16 @@ type PendingItem = {
   queuedAt: number;
 };
 
+type SkillDelta =
+  | { type: "new"; at: number }
+  | { type: "change"; value: number; at: number };
+
 type ReadinessState = {
   skills: Skill[];
   pendingQueue: PendingItem[];
   isSyncing: boolean;
+  lastUpdatedAt: number | null;
+  skillDeltas: Record<string, SkillDelta>;
 
   drawerMode: DrawerMode | null;
   activeSkillId: string | null;
@@ -61,6 +67,27 @@ function sanitizeQueue(value: unknown): PendingItem[] {
   return value.filter(isPendingItem);
 }
 
+function isSkillDelta(value: unknown): value is SkillDelta {
+  if (!value || typeof value !== "object") return false;
+  const delta = value as SkillDelta;
+  if (delta.type === "new") {
+    return typeof delta.at === "number";
+  }
+  return (
+    delta.type === "change" &&
+    typeof (delta as { value?: number }).value === "number" &&
+    typeof delta.at === "number"
+  );
+}
+
+function sanitizeSkillDeltas(value: unknown): Record<string, SkillDelta> {
+  if (!value || typeof value !== "object") return {};
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, delta]) => isSkillDelta(delta))
+    .map(([key, delta]) => [key, delta as SkillDelta]);
+  return Object.fromEntries(entries);
+}
+
 function enqueue(
   queue: PendingItem[],
   type: PendingItem["type"],
@@ -73,6 +100,8 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
   skills: MOCK_READINESS.skills,
   pendingQueue: [],
   isSyncing: false,
+  lastUpdatedAt: null,
+  skillDeltas: {},
 
   drawerMode: null,
   activeSkillId: null,
@@ -86,6 +115,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
 
   addSkill: async (skill) => {
     const online = isOnline();
+    const now = Date.now();
     set({ pendingAction: "create" });
     if (online) await simulateNetworkDelay();
     set((state) => {
@@ -94,11 +124,21 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
         drawerMode: null,
         activeSkillId: null,
         pendingAction: null,
+        lastUpdatedAt: now,
+        skillDeltas: {
+          ...state.skillDeltas,
+          [skill.id]: { type: "new", at: now },
+        },
         pendingQueue: online
           ? state.pendingQueue
           : enqueue(state.pendingQueue, "create", skill),
       };
-      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      setPersistedState({
+        skills: next.skills,
+        pendingQueue: next.pendingQueue,
+        lastUpdatedAt: next.lastUpdatedAt,
+        skillDeltas: next.skillDeltas,
+      });
       return next;
     });
     useToastStore.getState().pushToast({
@@ -112,9 +152,18 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
 
   updateSkill: async (id, label, score) => {
     const online = isOnline();
+    const now = Date.now();
     set({ pendingAction: "edit" });
     if (online) await simulateNetworkDelay();
     set((state) => {
+      const previous = state.skills.find((s) => s.id === id);
+      const delta = previous ? score - previous.score : 0;
+      const nextDeltas = { ...state.skillDeltas };
+      if (!previous || delta === 0) {
+        delete nextDeltas[id];
+      } else {
+        nextDeltas[id] = { type: "change", value: delta, at: now };
+      }
       const nextSkills = state.skills.map((s) =>
         s.id === id ? { ...s, label, score } : s
       );
@@ -123,11 +172,18 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
         drawerMode: null,
         activeSkillId: null,
         pendingAction: null,
+        lastUpdatedAt: now,
+        skillDeltas: nextDeltas,
         pendingQueue: online
           ? state.pendingQueue
           : enqueue(state.pendingQueue, "edit", { id, label, score }),
       };
-      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      setPersistedState({
+        skills: next.skills,
+        pendingQueue: next.pendingQueue,
+        lastUpdatedAt: next.lastUpdatedAt,
+        skillDeltas: next.skillDeltas,
+      });
       return next;
     });
     useToastStore.getState().pushToast({
@@ -139,20 +195,30 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
 
   removeSkill: async (id) => {
     const online = isOnline();
+    const now = Date.now();
     set({ pendingAction: "delete" });
     if (online) await simulateNetworkDelay();
     set((state) => {
+      const nextDeltas = { ...state.skillDeltas };
+      delete nextDeltas[id];
       const nextSkills = state.skills.filter((s) => s.id !== id);
       const next = {
         skills: nextSkills,
         drawerMode: null,
         activeSkillId: null,
         pendingAction: null,
+        lastUpdatedAt: now,
+        skillDeltas: nextDeltas,
         pendingQueue: online
           ? state.pendingQueue
           : enqueue(state.pendingQueue, "delete", { id }),
       };
-      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      setPersistedState({
+        skills: next.skills,
+        pendingQueue: next.pendingQueue,
+        lastUpdatedAt: next.lastUpdatedAt,
+        skillDeltas: next.skillDeltas,
+      });
       return next;
     });
     useToastStore.getState().pushToast({
@@ -172,7 +238,12 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     await simulateNetworkDelay(800);
     set((state) => {
       const next = { ...state, pendingQueue: [] };
-      setPersistedState({ skills: next.skills, pendingQueue: next.pendingQueue });
+      setPersistedState({
+        skills: next.skills,
+        pendingQueue: next.pendingQueue,
+        lastUpdatedAt: next.lastUpdatedAt,
+        skillDeltas: next.skillDeltas,
+      });
       return next;
     });
     set({ isSyncing: false });
@@ -189,6 +260,11 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     set({
       skills: (persisted.skills as Skill[]) ?? MOCK_READINESS.skills,
       pendingQueue: sanitizeQueue(persisted.pendingQueue),
+      lastUpdatedAt:
+        typeof persisted.lastUpdatedAt === "number"
+          ? persisted.lastUpdatedAt
+          : null,
+      skillDeltas: sanitizeSkillDeltas(persisted.skillDeltas),
     });
   },
 }));

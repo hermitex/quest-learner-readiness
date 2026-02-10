@@ -46,15 +46,6 @@ export function CreateSkillForm() {
       {/* Scrollable fields */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-text-primary">
-            Add a new skill area
-          </p>
-          <p className="text-xs text-text-secondary">
-            Give it a clear name and set a score that reflects recent progress.
-          </p>
-        </div>
-
-        <div className="space-y-2">
           <label
             htmlFor="skill-label"
             className="text-sm font-medium text-text-primary"

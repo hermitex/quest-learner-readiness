@@ -8,6 +8,8 @@ import type { ReadinessMeaning } from "@/src/types/readiness";
 type Props = {
   score: number;
   meaning: ReadinessMeaning;
+  strengthsCount: number;
+  growthCount: number;
 };
 
 function useCountUp(target: number, duration = 1000) {
@@ -80,7 +82,12 @@ function DonutChart({ score }: { score: number }) {
   );
 }
 
-export function OverallSummary({ score, meaning }: Props) {
+export function OverallSummary({
+  score,
+  meaning,
+  strengthsCount,
+  growthCount,
+}: Props) {
   const displayScore = useCountUp(score, 1200);
   const color = getScoreColor(score);
 
@@ -114,6 +121,16 @@ export function OverallSummary({ score, meaning }: Props) {
           <p className="text-sm text-text-secondary leading-relaxed">
             {meaning.message}
           </p>
+          <div className="pt-2 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+            <div className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success">
+              <span className="h-2 w-2 rounded-full bg-success" />
+              {strengthsCount} strengths
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-semibold text-warning">
+              <span className="h-2 w-2 rounded-full bg-warning" />
+              {growthCount} growth areas
+            </div>
+          </div>
         </div>
       </div>
     </Card>

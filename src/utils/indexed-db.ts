@@ -6,6 +6,8 @@ const STATE_KEY = "readiness";
 type StoredState = {
   skills: unknown;
   pendingQueue: unknown;
+  lastUpdatedAt?: unknown;
+  skillDeltas?: unknown;
 };
 
 function openDb(): Promise<IDBDatabase> {

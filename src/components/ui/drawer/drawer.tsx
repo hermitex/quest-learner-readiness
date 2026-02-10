@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { X, Maximize2, Minimize2 } from "lucide-react";
 import clsx from "clsx";
@@ -9,15 +9,26 @@ type DrawerProps = {
   open: boolean;
   onClose: () => void;
   title: string;
+  subtitle?: string;
   children: React.ReactNode;
 };
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
-export function Drawer({ open, onClose, title, children }: DrawerProps) {
+export function Drawer({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+}: DrawerProps) {
   const [expanded, setExpanded] = useState(false);
   const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef(false);
+  const titleId = useId();
+  const subtitleId = useId();
 
   useEffect(() => {
     if (open) document.body.style.overflow = "hidden";
@@ -32,30 +43,64 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
   }, []);
 
   useEffect(() => {
-    if (open) panelRef.current?.focus();
+    if (open) {
+      lastFocusedRef.current = document.activeElement as HTMLElement;
+      panelRef.current?.focus();
+    } else if (wasOpenRef.current) {
+      lastFocusedRef.current?.focus();
+    }
+    wasOpenRef.current = open;
   }, [open]);
-
-  // Reset expanded when drawer closes
-  // Remove effect and reset expanded in onClose handler instead
-
-  // Escape key closes
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === "Escape" && open) onClose();
-    },
-    [open, onClose]
-  );
-
-  useEffect(() => {
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleKeyDown]);
 
   // Handler to close drawer and reset expanded state
   const handleClose = useCallback(() => {
     setExpanded(false);
     onClose();
   }, [onClose]);
+
+  const handlePanelKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        handleClose();
+        return;
+      }
+
+      if (e.key !== "Tab") return;
+      const panel = panelRef.current;
+      if (!panel) return;
+
+      const focusable = Array.from(
+        panel.querySelectorAll<HTMLElement>(
+          'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => !el.hasAttribute("disabled"));
+
+      if (focusable.length === 0) {
+        e.preventDefault();
+        panel.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+
+      if (e.shiftKey) {
+        if (active === first || active === panel) {
+          e.preventDefault();
+          last.focus();
+        }
+        return;
+      }
+
+      if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    },
+    [handleClose]
+  );
 
   if (!mounted) return null;
 
@@ -83,7 +128,8 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
+        aria-describedby={subtitle ? subtitleId : undefined}
         className={clsx(
           "fixed top-16 bottom-0 right-0 z-50 w-full bg-surface shadow-2xl outline-none",
           "md:max-w-[calc(100%_-_16rem)]",
@@ -95,10 +141,12 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
           transition: `transform 500ms ${EASE}, max-width 500ms ${EASE}`,
           transform: open ? "translateX(0)" : "translateX(100%)",
         }}
+        onKeyDown={handlePanelKeyDown}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="shrink-0 flex items-center px-6 py-4 border-b border-border bg-surface-muted">
+          <div className="shrink-0 border-b border-border bg-surface-muted">
+            <div className="flex items-center px-6 py-3">
             <button
               onClick={() => setExpanded(!expanded)}
               className="hidden lg:block p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
@@ -111,17 +159,31 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
               )}
             </button>
 
-            <h2 className="flex-1 text-center text-base font-semibold text-primary">
-              {title}
-            </h2>
+              <div className="flex-1 text-center">
+                <h2
+                  id={titleId}
+                  className="text-base font-semibold text-primary"
+                >
+                  {title}
+                </h2>
+                {subtitle && (
+                  <p
+                    id={subtitleId}
+                    className="text-xs text-text-secondary"
+                  >
+                    {subtitle}
+                  </p>
+                )}
+              </div>
 
-            <button
-              onClick={handleClose}
-              className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
+              <button
+                onClick={handleClose}
+                className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Content — children own their own scroll + footer layout */}

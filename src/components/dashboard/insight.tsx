@@ -2,6 +2,7 @@
 
 import { Lightbulb, ArrowRight } from "lucide-react";
 import { Card } from "../ui/card";
+import { Button } from "../ui/button";
 import { useReadinessStore } from "@/src/store/readiness.store";
 import type { Skill } from "@/src/types/readiness";
 
@@ -44,14 +45,15 @@ export function Insight({ message, skills }: Props) {
           </p>
 
           {focusSkill && (
-            <button
+            <Button
               type="button"
+              variant="tertiary"
+              className="h-8 px-2 text-xs"
               onClick={() => viewSkill(focusSkill.id)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-soft transition-colors mt-1"
             >
               Explore {focusSkill.label}
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+              <ArrowRight className="w-3.5 h-3.5 ml-1" />
+            </Button>
           )}
         </div>
       </div>

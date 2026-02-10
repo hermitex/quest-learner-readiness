@@ -23,13 +23,34 @@ function useDrawerTitle(): string {
   return drawerMode ? titles[drawerMode] : "";
 }
 
+function useDrawerSubtitle(): string {
+  const { drawerMode, activeSkillId, skills } = useReadinessStore();
+  const skill = skills.find((s) => s.id === activeSkillId);
+  const name = skill?.label ?? "this skill";
+
+  const subtitles: Record<DrawerMode, string> = {
+    view: `Progress summary and guidance for ${name}.`,
+    create: "Add a new skill area and set an initial score.",
+    edit: `Update ${name} details and adjust the score.`,
+    delete: `This will remove ${name} from your readiness overview.`,
+  };
+
+  return drawerMode ? subtitles[drawerMode] : "";
+}
+
 export function SkillDrawer() {
   const { drawerMode, activeSkillId, closeDrawer, openEdit } =
     useReadinessStore();
   const title = useDrawerTitle();
+  const subtitle = useDrawerSubtitle();
 
   return (
-    <Drawer open={!!drawerMode} onClose={closeDrawer} title={title}>
+    <Drawer
+      open={!!drawerMode}
+      onClose={closeDrawer}
+      title={title}
+      subtitle={subtitle}
+    >
       {drawerMode === "view" && activeSkillId && (
         <SkillDrawerContent
           skillId={activeSkillId}

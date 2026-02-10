@@ -22,11 +22,35 @@ type Props = {
 
 export function SkillBreakdown({ skills }: Props) {
   const openCreate = useReadinessStore((s) => s.openCreate);
+  const lastUpdatedAt = useReadinessStore((s) => s.lastUpdatedAt);
+  const pendingQueue = useReadinessStore((s) => s.pendingQueue);
+  const isSyncing = useReadinessStore((s) => s.isSyncing);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<FilterType>("all");
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(800);
   const listRef = useRef<HTMLDivElement | null>(null);
+
+  const formatRelativeTime = (timestamp: number) => {
+    const diff = Date.now() - timestamp;
+    if (diff < 60_000) return "Just now";
+    const minutes = Math.floor(diff / 60_000);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  const lastUpdatedLabel = lastUpdatedAt
+    ? `Last updated ${formatRelativeTime(lastUpdatedAt)}`
+    : "Not updated yet";
+  const hasOfflineChanges = pendingQueue.length > 0;
+  const syncLabel = isSyncing
+    ? "Syncing changes…"
+    : hasOfflineChanges
+      ? "Changes saved offline"
+      : null;
 
   const filteredSkills = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,24 +105,30 @@ export function SkillBreakdown({ skills }: Props) {
 
   return (
     <div className="animate-fade-in-up space-y-4" style={{ animationDelay: "150ms" }}>
-      {/* Row 1: Title + count + Add button */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-baseline gap-2.5">
-          <h3 className="text-sm font-semibold">Skill Areas</h3>
-          <span className="text-xs text-text-muted tabular-nums">
-            {filteredSkills.length} of {skills.length}
-          </span>
+      {/* Header rail */}
+      <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-center">
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-2.5">
+            <h3 className="text-sm font-semibold">Skill Areas</h3>
+            <span className="text-xs text-text-muted tabular-nums">
+              {filteredSkills.length} of {skills.length}
+            </span>
+          </div>
+          <p className="text-xs text-text-muted">
+            Manage and update skill scores.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+            <span>{lastUpdatedLabel}</span>
+            {syncLabel && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                {syncLabel}
+              </span>
+            )}
+          </div>
         </div>
 
-        <Button onClick={openCreate} className="h-9 px-4 text-xs shadow-sm">
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
-          Add skill
-        </Button>
-      </div>
-
-      {/* Row 2: Filters + Search */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 text-xs">
+        <div className="flex items-center gap-1.5 text-xs md:justify-center">
           {FILTERS.map(({ key, label }) => (
             <button
               key={key}
@@ -115,14 +145,22 @@ export function SkillBreakdown({ skills }: Props) {
           ))}
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" />
-          <Input
-            placeholder="Search skill area"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="h-9 w-full max-w-65 pl-8"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted pointer-events-none" />
+            <Input
+              placeholder="Search skill area"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="h-9 w-full pl-8"
+              aria-label="Search skill areas"
+            />
+          </div>
+
+          <Button onClick={openCreate} className="h-9 px-4 text-xs shadow-sm whitespace-nowrap">
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Add skill
+          </Button>
         </div>
       </div>
 
