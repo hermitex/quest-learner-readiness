@@ -101,7 +101,7 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
   pendingQueue: [],
   isSyncing: false,
   lastUpdatedAt: null,
-  skillDeltas: {},
+  skillDeltas: {} as Record<string, SkillDelta>,
 
   drawerMode: null,
   activeSkillId: null,
@@ -119,16 +119,17 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     set({ pendingAction: "create" });
     if (online) await simulateNetworkDelay();
     set((state) => {
+      const nextDeltas: Record<string, SkillDelta> = {
+        ...state.skillDeltas,
+        [skill.id]: { type: "new", at: now },
+      };
       const next = {
         skills: [...state.skills, skill],
         drawerMode: null,
         activeSkillId: null,
         pendingAction: null,
         lastUpdatedAt: now,
-        skillDeltas: {
-          ...state.skillDeltas,
-          [skill.id]: { type: "new", at: now },
-        },
+        skillDeltas: nextDeltas,
         pendingQueue: online
           ? state.pendingQueue
           : enqueue(state.pendingQueue, "create", skill),
@@ -158,7 +159,9 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     set((state) => {
       const previous = state.skills.find((s) => s.id === id);
       const delta = previous ? score - previous.score : 0;
-      const nextDeltas = { ...state.skillDeltas };
+      const nextDeltas: Record<string, SkillDelta> = {
+        ...state.skillDeltas,
+      };
       if (!previous || delta === 0) {
         delete nextDeltas[id];
       } else {
@@ -199,7 +202,9 @@ export const useReadinessStore = create<ReadinessState>((set) => ({
     set({ pendingAction: "delete" });
     if (online) await simulateNetworkDelay();
     set((state) => {
-      const nextDeltas = { ...state.skillDeltas };
+      const nextDeltas: Record<string, SkillDelta> = {
+        ...state.skillDeltas,
+      };
       delete nextDeltas[id];
       const nextSkills = state.skills.filter((s) => s.id !== id);
       const next = {
