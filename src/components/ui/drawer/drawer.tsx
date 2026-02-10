@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { X, Maximize2, Minimize2 } from "lucide-react";
 import clsx from "clsx";
 
@@ -15,6 +16,7 @@ const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 
 export function Drawer({ open, onClose, title, children }: DrawerProps) {
   const [expanded, setExpanded] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,13 +28,15 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
   }, [open]);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (open) panelRef.current?.focus();
   }, [open]);
 
   // Reset expanded when drawer closes
-  useEffect(() => {
-    if (!open) setExpanded(false);
-  }, [open]);
+  // Remove effect and reset expanded in onClose handler instead
 
   // Escape key closes
   const handleKeyDown = useCallback(
@@ -47,18 +51,31 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  return (
+  // Handler to close drawer and reset expanded state
+  const handleClose = useCallback(() => {
+    setExpanded(false);
+    onClose();
+  }, [onClose]);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      {/* Backdrop */}
+      {/* Backdrop (no blur over topbar) */}
       <div
         className={clsx(
-          "fixed top-16 right-0 bottom-0 left-0 bg-black/30 backdrop-blur-sm z-40",
+          "fixed inset-0 z-40 flex flex-col",
           open ? "opacity-100" : "pointer-events-none opacity-0"
         )}
         style={{ transition: `opacity 500ms ${EASE}` }}
-        onClick={onClose}
         aria-hidden
-      />
+      >
+        <div className="h-16 pointer-events-none" />
+        <div
+          className="flex-1 bg-black/30 backdrop-blur-sm"
+          onClick={handleClose}
+        />
+      </div>
 
       {/* Panel */}
       <aside
@@ -67,11 +84,16 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="fixed top-16 bottom-0 right-0 z-50 w-full bg-surface shadow-2xl outline-none"
+        className={clsx(
+          "fixed top-16 bottom-0 right-0 z-50 w-full bg-surface shadow-2xl outline-none",
+          "md:max-w-[calc(100%_-_16rem)]",
+          expanded
+            ? "lg:max-w-[calc(100%_-_16rem)]"
+            : "lg:max-w-[42rem]"
+        )}
         style={{
           transition: `transform 500ms ${EASE}, max-width 500ms ${EASE}`,
           transform: open ? "translateX(0)" : "translateX(100%)",
-          maxWidth: expanded ? "calc(100% - 16rem)" : "42rem",
         }}
       >
         <div className="flex flex-col h-full">
@@ -79,7 +101,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
           <div className="shrink-0 flex items-center px-6 py-4 border-b border-border bg-surface-muted">
             <button
               onClick={() => setExpanded(!expanded)}
-              className="hidden md:block p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
+              className="hidden lg:block p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
               aria-label={expanded ? "Collapse drawer" : "Expand drawer"}
             >
               {expanded ? (
@@ -94,7 +116,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
             </h2>
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 rounded-md text-text-muted hover:text-text-primary hover:bg-white transition-colors"
               aria-label="Close"
             >
@@ -107,5 +129,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
         </div>
       </aside>
     </>
+    ,
+    document.body
   );
 }
