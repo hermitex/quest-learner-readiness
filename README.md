@@ -14,6 +14,13 @@ The emphasis is clarity of thinking, system design, and UI/UX intent over backen
 
 ---
 
+## Links
+
+- Live App: https://quest-learner-readiness.vercel.app/
+- GitHub Repository: https://github.com/hermitex/quest-learner-readiness
+
+---
+
 ## UI Preview
 
 ![Quest Learner Readiness dashboard UI](public/assets/dashboard-ui.png)
