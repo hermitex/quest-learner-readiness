@@ -169,4 +169,4 @@ The UI prioritizes immediate comprehension and low cognitive load:
 
 Add your Loom walkthrough link here:
 
-- Loom: `REPLACE_WITH_LOOM_LINK`
+- Loom: [Link](https://www.loom.com/share/0e29e5b2a4b448cfa68b575662212140)
